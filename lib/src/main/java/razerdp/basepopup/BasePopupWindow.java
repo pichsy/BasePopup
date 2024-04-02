@@ -821,7 +821,7 @@ public abstract class BasePopupWindow implements PopupWindow.OnDismissListener, 
      */
     void tryToShowPopup(View v, boolean positionMode) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            throw new CalledFromWrongThreadException(PopupUtils.getString(R.string.basepopup_error_thread));
+            throw new CalledFromWrongThreadException("请在主线程操作");
         }
         mHelper.enablePendingDismiss = true;
         checkActivity();
@@ -830,38 +830,36 @@ public abstract class BasePopupWindow implements PopupWindow.OnDismissListener, 
                 waitForFirstActivityOpened(v, positionMode);
                 return;
             }
-            onShowError(new NullPointerException(PopupUtils.getString(R.string.basepopup_error_non_act_context)));
+            onShowError(new NullPointerException("找不到宿主Activity，请确保您至少打开了一个Activity"));
             return;
         }
         if (isShowing() || mContentView == null) return;
         if (isDestroyed) {
-            onShowError(new IllegalAccessException(PopupUtils.getString(R.string.basepopup_error_destroyed)));
+            onShowError(new IllegalAccessException("该BasePopup已经被Destroy，无法继续执行show"));
             return;
         }
         View decorView = getDecorView();
         if (decorView == null) {
-            onShowError(new NullPointerException(PopupUtils.getString(R.string.basepopup_error_decorview,
-                    ownerParentLog())));
+            onShowError(new IllegalAccessException("PopupWindow需要%s的DecorView的WindowToken，请检查是否存在DecorView"));
             return;
         }
         if (decorView.getWindowToken() == null) {
-            onShowError(new IllegalStateException(PopupUtils.getString(R.string.basepopup_window_not_prepare,
-                    ownerParentLog())));
+            onShowError(new IllegalStateException("窗口尚未准备好，等待准备就绪后弹出"));
             pendingPopupWindow(decorView, v, positionMode);
             return;
         }
-        onLogInternal(PopupUtils.getString(R.string.basepopup_window_prepared, ownerParentLog()));
+        onLogInternal("窗口已经准备好，执行弹出");
         if (!onBeforeShow()) return;
         mHelper.prepare(v, positionMode);
         try {
             if (isShowing()) {
-                onShowError(new IllegalStateException(PopupUtils.getString(R.string.basepopup_has_been_shown)));
+                onShowError(new IllegalStateException("BasePopup已经显示了"));
                 return;
             }
             mHelper.onShow();
             //这里传参没啥意义的，，反正代理类会解决
             mPopupWindowProxy.showAtLocation(decorView, Gravity.NO_GRAVITY, 0, 0);
-            onLogInternal(PopupUtils.getString(R.string.basepopup_shown_successful));
+            onLogInternal("弹窗成功");
         } catch (Exception e) {
             e.printStackTrace();
             superDismiss();
@@ -2015,7 +2013,7 @@ public abstract class BasePopupWindow implements PopupWindow.OnDismissListener, 
      */
     public void dismiss(boolean animateDismiss) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            throw new CalledFromWrongThreadException(PopupUtils.getString(R.string.basepopup_error_thread));
+            throw new CalledFromWrongThreadException("请在主线程中操作");
         }
         if (mContentView == null) return;
         if (!isShowing()) {
@@ -2190,7 +2188,7 @@ public abstract class BasePopupWindow implements PopupWindow.OnDismissListener, 
     }
 
     private String ownerParentLog() {
-        return PopupUtils.getString(R.string.basepopup_host, String.valueOf(ownerAnchorParent));
+        return "宿主";
     }
 //endregion
 

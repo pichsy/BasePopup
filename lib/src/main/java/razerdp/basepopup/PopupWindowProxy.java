@@ -81,7 +81,7 @@ class PopupWindowProxy extends PopupWindow implements ClearMemoryObject {
         if (isShowing()) return;
         Activity activity = PopupUtils.getActivity(parent.getContext(), false);
         if (activity == null) {
-            Log.e(TAG, PopupUtils.getString(R.string.basepopup_error_non_act_context));
+            Log.e(TAG,"找不到宿主Activity，请确保您至少打开了一个Activity");
             return;
         }
         onBeforeShowExec(activity);

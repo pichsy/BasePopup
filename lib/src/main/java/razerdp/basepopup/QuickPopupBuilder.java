@@ -88,7 +88,7 @@ public class QuickPopupBuilder implements ClearMemoryObject {
         if (popupHost instanceof Dialog) {
             return new QuickPopup((Dialog) popupHost, this);
         }
-        throw new NullPointerException(PopupUtils.getString(R.string.basepopup_host_destroyed));
+        throw new NullPointerException("宿主已经被销毁");
     }
 
     public QuickPopup show() {

@@ -34,7 +34,7 @@ public final class BasePopupSDK {
     private BasePopupSDK() {
     }
 
-    synchronized void init(Context context) {
+    public synchronized void init(Context context) {
         if (mApplicationContext != null) return;
         mApplicationContext = (Application) context.getApplicationContext();
         regLifeCallback();

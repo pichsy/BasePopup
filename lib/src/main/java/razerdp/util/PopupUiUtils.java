@@ -155,6 +155,7 @@ public class PopupUiUtils {
 
     public static void safeAddGlobalLayoutListener(View v, ViewTreeObserver.OnGlobalLayoutListener listener) {
         try {
+            if (v == null) return;
             v.getViewTreeObserver().removeOnGlobalLayoutListener(listener);
             v.getViewTreeObserver().addOnGlobalLayoutListener(listener);
         } catch (Exception e) {
@@ -164,6 +165,7 @@ public class PopupUiUtils {
 
     public static void safeRemoveGlobalLayoutListener(View v, ViewTreeObserver.OnGlobalLayoutListener listener) {
         try {
+            if (v == null) return;
             v.getViewTreeObserver().removeOnGlobalLayoutListener(listener);
         } catch (Exception e) {
             PopupLog.e(e);

@@ -215,15 +215,4 @@ public class PopupUtils {
         return obj;
     }
 
-    /**
-     * 从资源文件拿到文字
-     */
-    public static String getString(@StringRes int strId, Object... objs) {
-        if (strId == 0) return null;
-        try {
-            return BasePopupSDK.getApplication().getResources().getString(strId, objs);
-        } catch (Exception e) {
-            return "";
-        }
-    }
 }

@@ -3,12 +3,14 @@ package razerdp.util;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Rect;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 
 import razerdp.basepopup.BasePopupSDK;
+import razerdp.util.log.PopupLog;
 
 /**
  * Created by 大灯泡 on 2016/1/14.
@@ -72,7 +74,7 @@ public class KeyboardUtils {
                     .getSystemService(Context.INPUT_METHOD_SERVICE);
             if (imm != null) {
                 imm.hideSoftInputFromWindow(view.getWindowToken(),
-                                            InputMethodManager.HIDE_NOT_ALWAYS);
+                        InputMethodManager.HIDE_NOT_ALWAYS);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -144,6 +146,7 @@ public class KeyboardUtils {
 
     public static ViewTreeObserver.OnGlobalLayoutListener observerKeyboardChange(Activity act, final OnKeyboardChangeListener onKeyboardChangeListener) {
         if (act == null || onKeyboardChangeListener == null) return null;
+        if (act.getWindow() == null) return null;
         final View decor = act.getWindow().getDecorView();
         ViewTreeObserver.OnGlobalLayoutListener layoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
             Rect rect = new Rect();
@@ -154,32 +157,36 @@ public class KeyboardUtils {
 
             @Override
             public void onGlobalLayout() {
-                View content = decor.findViewById(android.R.id.content);
-                if (content == null) return;
-                if (originalContentRect.isEmpty()) {
-                    //需要从content一直遍历往前找到decorview下的第一个child，那个为准
-                    ViewParent parent = content.getParent();
-                    for (; ; ) {
-                        if (parent.getParent() == decor) {
-                            break;
+                try {
+                    View content = decor.findViewById(android.R.id.content);
+                    if (content == null) return;
+                    if (originalContentRect.isEmpty()) {
+                        //需要从content一直遍历往前找到decorview下的第一个child，那个为准
+                        ViewParent parent = content.getParent();
+                        for (; ; ) {
+                            if (parent.getParent() == decor) {
+                                break;
+                            }
+                            if (!(parent.getParent() instanceof View)) {
+                                break;
+                            }
+                            parent = parent.getParent();
                         }
-                        if (!(parent.getParent() instanceof View)) {
-                            break;
-                        }
-                        parent = parent.getParent();
+                        originalContentRect.set(((View) parent).getLeft(),
+                                ((View) parent).getTop(),
+                                ((View) parent).getRight(),
+                                ((View) parent).getBottom());
                     }
-                    originalContentRect.set(((View) parent).getLeft(),
-                                            ((View) parent).getTop(),
-                                            ((View) parent).getRight(),
-                                            ((View) parent).getBottom());
+                    decor.getWindowVisibleDisplayFrame(rect);
+                    keyboardRect.set(rect.left, rect.bottom, rect.right, originalContentRect.bottom);
+                    boolean isVisible = keyboardRect.height() > (originalContentRect.height() >> 2) && isOpen();
+                    if (isVisible == lastVisible && keyboardRect.height() == lastHeight) return;
+                    lastVisible = isVisible;
+                    lastHeight = keyboardRect.height();
+                    onKeyboardChangeListener.onKeyboardChange(keyboardRect, isVisible);
+                } catch (Exception e) {
+                    PopupLog.e("异常:" + Log.getStackTraceString(e));
                 }
-                decor.getWindowVisibleDisplayFrame(rect);
-                keyboardRect.set(rect.left, rect.bottom, rect.right, originalContentRect.bottom);
-                boolean isVisible = keyboardRect.height() > (originalContentRect.height() >> 2) && isOpen();
-                if (isVisible == lastVisible && keyboardRect.height() == lastHeight) return;
-                lastVisible = isVisible;
-                lastHeight = keyboardRect.height();
-                onKeyboardChangeListener.onKeyboardChange(keyboardRect, isVisible);
             }
         };
         PopupUiUtils.safeAddGlobalLayoutListener(decor, layoutListener);
